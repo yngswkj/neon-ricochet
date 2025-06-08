@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>NEON RICOCHET</title>
+    <link rel="icon" type="image/png" href="favicon.png">
+    <link rel="apple-touch-icon" href="icon.png">
+    <link rel="stylesheet" href="style.css">
+    <script src="config.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.min.js"></script>
+</head>
+
+<body>
+    <div id="gameContainer">
+        <canvas id="gameCanvas"></canvas>
+
+        <div id="ui">
+            <div>STAGE: <span id="stage">1</span></div>
+            <div>SHOTS: <span id="shots">0</span></div>
+        </div>
+
+        <div id="targetCounter">
+            TARGETS: <span id="targetsLeft">0</span>/<span id="totalTargets">0</span>
+        </div>
+
+        <div id="shotLimit">
+            <span style="font-size: clamp(14px, 2vw, 16px);">残り</span> <span id="shotsLeft">0</span> <span
+                style="font-size: clamp(14px, 2vw, 16px);">ショット</span>
+        </div>
+
+        <button id="helpButton" onclick="showHelp()" title="ヘルプ">?</button>
+
+        <!-- 開発者モードボタン -->
+        <button id="devButton" onclick="showDevPanel()" title="開発者モード">!</button>
+
+        <div id="powerUpStatus"></div>
+
+        <div id="powerUps">
+            <div class="powerUpIcon" id="penetrateIcon" style="border-color: #f0f; box-shadow: 0 0 10px #f0f;"></div>
+            <div class="powerUpIcon" id="speedIcon" style="border-color: #00f; box-shadow: 0 0 10px #00f;"></div>
+            <div class="powerUpIcon" id="powerIcon" style="border-color: #f00; box-shadow: 0 0 10px #f00;"></div>
+            <div class="powerUpIcon" id="multishotIcon" style="border-color: #0f0; box-shadow: 0 0 10px #0f0;"></div>
+            <div class="powerUpIcon" id="homingIcon" style="border-color: #ff0; box-shadow: 0 0 10px #ff0;"></div>
+            <div class="powerUpIcon" id="predictIcon" style="border-color: #0ff; box-shadow: 0 0 10px #0ff;"></div>
+        </div>
+
+        <div id="startScreen">
+            <h1>NEON RICOCHET</h1>
+            <p>1ショットで全てのターゲットを破壊せよ！<br>引っ張って狙いを定めて発射！</p>
+            <p style="font-size: 14px; color: #ff0;">右上の「?」ボタンでヘルプを確認できます</p>
+            <button onclick="startGame()">START GAME</button>
+        </div>
+
+        <div id="stageClearScreen" style="display: none;">
+            <h1>STAGE CLEAR!</h1>
+            <p>SHOTS USED: <span id="shotsUsed">0</span></p>
+            <p>PERFECT: <span id="perfect">NO</span></p>
+            <button onclick="nextStage()">NEXT STAGE</button>
+        </div>
+
+        <div id="gameOverScreen" style="display: none;">
+            <h1>STAGE FAILED</h1>
+            <p>ショット制限を超えました！<br>ステージ1からやり直します</p>
+            <button onclick="retryStage()">RETRY FROM STAGE 1</button>
+            <button onclick="backToMenu()">MENU</button>
+        </div>
+
+        <div id="helpModal" style="display: none;" onclick="hideHelp(event)">
+            <div id="helpContent" onclick="event.stopPropagation()">
+                <h2>NEON RICOCHET - HELP</h2>
+
+                <div class="help-section">
+                    <h3>操作方法</h3>
+                    <p>1. プレイヤー（青い六角形）をドラッグして引っ張る</p>
+                    <p>2. 狙いを定めて離すと発射</p>
+                    <p>3. 制限ショット数内で全てのターゲットを破壊</p>
+                    <p>4. 黄色い障害物は反射に使える</p>
+                </div>
+
+                <div class="help-section">
+                    <h3>ターゲットの種類</h3>
+                    <p><strong style="color: #f00;">ハードターゲット（赤・八角形）</strong><br>
+                        硬い装甲を持ち、弾を反射させる</p>
+                    <p><strong style="color: #f0f;">ソフトターゲット（紫・波状）</strong><br>
+                        柔らかく、弾が貫通する（速度は落ちる）</p>
+                    <p><strong>HPを持つターゲット</strong><br>
+                        HPバーが表示され、複数回ヒットが必要</p>
+                    <p><strong>動くターゲット</strong><br>
+                        矢印で移動方向を表示、ショット中は停止</p>
+                </div>
+
+                <div class="help-section">
+                    <h3>パワーアップ</h3>
+                    <p style="color: #ff0; margin-bottom: 10px;"><strong>取得した次のショットで効果発動！</strong></p>
+                    <div class="powerup-item">
+                        <div class="powerup-icon-help" style="border-color: #f0f; box-shadow: 0 0 5px #f0f;">→</div>
+                        <div>
+                            <strong style="color: #f0f;">貫通 (Penetrate)</strong><br>
+                            全ての敵と障害物を貫通（1ショット限定）
+                        </div>
+                    </div>
+                    <div class="powerup-item">
+                        <div class="powerup-icon-help" style="border-color: #00f; box-shadow: 0 0 5px #00f;">»</div>
+                        <div>
+                            <strong style="color: #00f;">スピード (Speed)</strong><br>
+                            発射速度が1.5倍に（1ショット限定）
+                        </div>
+                    </div>
+                    <div class="powerup-item">
+                        <div class="powerup-icon-help" style="border-color: #f00; box-shadow: 0 0 5px #f00;">◆</div>
+                        <div>
+                            <strong style="color: #f00;">パワー (Power)</strong><br>
+                            攻撃力3倍、HPの多い敵に効果的（1ショット限定）
+                        </div>
+                    </div>
+                    <div class="powerup-item">
+                        <div class="powerup-icon-help" style="border-color: #0ff; box-shadow: 0 0 5px #0ff;">◈</div>
+                        <div>
+                            <strong style="color: #0ff;">軌道予測 (Predict)</strong><br>
+                            発射軌道を3回反射まで表示（1ショット限定）
+                        </div>
+                    </div>
+                    <div class="powerup-item">
+                        <div class="powerup-icon-help" style="border-color: #0f0; box-shadow: 0 0 5px #0f0;">※</div>
+                        <div>
+                            <strong style="color: #0f0;">マルチショット (Multishot)</strong><br>
+                            3方向に弾を発射（1ショット限定）
+                        </div>
+                    </div>
+                    <div class="powerup-item">
+                        <div class="powerup-icon-help" style="border-color: #ff0; box-shadow: 0 0 5px #ff0;">◎</div>
+                        <div>
+                            <strong style="color: #ff0;">ホーミング (Homing)</strong><br>
+                            敵に自動追尾する弾を発射（1ショット限定）
+                        </div>
+                    </div>
+                </div>
+
+                <div class="help-section">
+                    <h3>ヒント</h3>
+                    <p>・<strong>パワーアップは次のショットで有効になる</strong></p>
+                    <p>・ハードターゲットは反射を利用して他の敵を狙える</p>
+                    <p>・ソフトターゲットは貫通するが速度が落ちる</p>
+                    <p>・動く敵は移動パターンを読んで狙おう</p>
+                    <p>・貫通状態なら全ての敵と障害物を貫通できる</p>
+                    <p>・HPの多い敵にはパワーアップを活用しよう</p>
+                    <p>・障害物を使った反射ショットを活用しよう</p>
+                    <p>・制限ショット数を超えるとステージ1からやり直し</p>
+                    <p>・後半は自動的に減速するので狙いやすい</p>
+                </div>
+
+                <button onclick="hideHelp()">CLOSE</button>
+            </div>
+        </div>
+
+        <!-- 開発者コントロールパネル -->
+        <div id="devModal" style="display: none;" onclick="hideDevPanel(event)">
+            <div id="devContent" onclick="event.stopPropagation()">
+                <h2>開発者モード</h2>
+
+                <div class="dev-section">
+                    <h3>ステージ操作</h3>
+                    <button onclick="destroyAllTargets()" class="dev-button danger">全ターゲット破壊</button>
+                    <button onclick="resetStage()" class="dev-button">ステージリセット</button>
+                </div>
+
+                <div class="dev-section">
+                    <h3>パワーアップ適用</h3>
+                    <div class="dev-powerup-grid">
+                        <button onclick="applyPowerUp('penetrate')" class="dev-powerup-btn" style="border-color: #f0f;">
+                            <span style="color: #f0f;">→</span> 貫通
+                        </button>
+                        <button onclick="applyPowerUp('speed')" class="dev-powerup-btn" style="border-color: #00f;">
+                            <span style="color: #00f;">»</span> スピード
+                        </button>
+                        <button onclick="applyPowerUp('power')" class="dev-powerup-btn" style="border-color: #f00;">
+                            <span style="color: #f00;">◆</span> パワー
+                        </button>
+                        <button onclick="applyPowerUp('predict')" class="dev-powerup-btn" style="border-color: #0ff;">
+                            <span style="color: #0ff;">◈</span> 軌道予測
+                        </button>
+                        <button onclick="applyPowerUp('multishot')" class="dev-powerup-btn" style="border-color: #0f0;">
+                            <span style="color: #0f0;">※</span> マルチショット
+                        </button>
+                        <button onclick="applyPowerUp('homing')" class="dev-powerup-btn" style="border-color: #ff0;">
+                            <span style="color: #ff0;">◎</span> ホーミング
+                        </button>
+                    </div>
+                </div>
+
+                <div class="dev-section">
+                    <h3>プレイヤー操作</h3>
+                    <button onclick="resetPlayer()" class="dev-button">プレイヤー位置リセット</button>
+                    <button onclick="toggleGodMode()" class="dev-button" id="godModeBtn">無敵モード: OFF</button>
+                </div>
+
+                <div class="dev-section">
+                    <h3>ステージジャンプ</h3>
+                    <div class="dev-stage-grid">
+                        <button onclick="jumpToStage(1)" class="dev-stage-btn">ステージ 1</button>
+                        <button onclick="jumpToStage(2)" class="dev-stage-btn">ステージ 2</button>
+                        <button onclick="jumpToStage(3)" class="dev-stage-btn">ステージ 3</button>
+                        <button onclick="jumpToStage(4)" class="dev-stage-btn">ステージ 4</button>
+                        <button onclick="jumpToStage(5)" class="dev-stage-btn">ステージ 5</button>
+                    </div>
+                </div>
+
+                <button onclick="hideDevPanel()" class="dev-button">CLOSE</button>
+            </div>
+        </div>
+    </div>
+    <script src="script.js"></script>
+
+</body>
+
+</html>

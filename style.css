@@ -1,0 +1,841 @@
+@import url('https://fonts.googleapis.com/css2?family=DotGothic16&family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;500;600;700&family=Exo+2:wght@300;400;500;600;700&family=Noto+Sans+JP:wght@300;400;500;700;900&display=swap');
+
+body {
+    margin: 0;
+    padding: 0;
+    background: #000;
+    color: #0ff;
+    font-family: 'Orbitron', 'Rajdhani', 'Exo 2', 'DotGothic16', 'Noto Sans JP', 'Hiragino Kaku Gothic Pro', 'Yu Gothic UI', 'Meiryo UI', sans-serif;
+    overflow: hidden;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    touch-action: none;
+}
+
+#gameContainer {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+#gameCanvas {
+    border: 2px solid #0ff;
+    box-shadow: 0 0 20px #0ff, inset 0 0 20px #0ff333;
+    cursor: pointer;
+    max-width: 100%;
+    max-height: 100%;
+}
+
+#ui {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    font-size: clamp(16px, 3vw, 20px);
+    text-shadow: 0 0 10px #0ff;
+    z-index: 10;
+    font-family: 'Rajdhani', 'DotGothic16', 'Noto Sans JP', 'Yu Gothic UI', sans-serif;
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+
+#powerUps {
+    position: absolute;
+    top: 20px;
+    right: 125px;
+    height: 50px;
+    display: flex;
+    flex-wrap: wrap;
+    max-width: 200px;
+    justify-content: center;
+    align-items: center;
+    z-index: 10;
+    pointer-events: none;
+}
+
+.powerUpIcon {
+    width: 16px;
+    height: 16px;
+    margin: 10px 6px;
+    padding: 10px;
+    border: 2px solid;
+    display: none;
+    box-shadow: 0 0 10px;
+    position: relative;
+    background: rgba(0, 0, 0, 0.8);
+    align-items: center;
+    font-size: 24px;
+    line-height: 16px;
+    text-align: center;
+    font-family: 'Orbitron', 'DotGothic16', 'Noto Sans JP', 'Yu Gothic UI', sans-serif;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s;
+    animation: powerUpStandby 2s infinite;
+}
+
+.powerUpIcon.active {
+    animation: powerUpActive 0.5s ease-in-out infinite;
+    background: rgba(0, 0, 0, 0.9);
+    transform: scale(1.1);
+}
+
+@keyframes powerUpStandby {
+    0%, 100% {
+        box-shadow: 0 0 10px currentColor;
+        transform: scale(1);
+    }
+
+    50% {
+        box-shadow: 0 0 20px currentColor, 0 0 30px currentColor;
+        transform: scale(1.05);
+    }
+}
+
+@keyframes powerUpActive {
+    0%, 100% {
+        transform: scale(1.1);
+        box-shadow: 0 0 15px currentColor, 0 0 25px currentColor;
+    }
+
+    50% {
+        transform: scale(1.2);
+        box-shadow: 0 0 25px currentColor, 0 0 35px currentColor;
+    }
+}
+
+.powerUpIcon img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    filter: brightness(1.5) contrast(1.3) saturate(1.4);
+    padding: 2px;
+}
+
+.powerUpIcon.active img {
+    filter: brightness(2) contrast(1.5) saturate(1.6) drop-shadow(0 0 8px currentColor);
+}
+
+@keyframes powerUpPulse {
+    0%, 100% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.2);
+    }
+}
+
+#startScreen,
+#gameOverScreen,
+#stageClearScreen {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+    background: rgba(0, 0, 0, 0.9);
+    padding: clamp(20px, 5vw, 40px);
+    border: 2px solid #0ff;
+    box-shadow: 0 0 30px #0ff;
+    width: min(90%, 400px);
+    z-index: 100;
+}
+
+button {
+    background: transparent;
+    border: 2px solid #0ff;
+    color: #0ff;
+    padding: clamp(8px, 2vw, 10px) clamp(20px, 4vw, 30px);
+    font-size: clamp(16px, 3vw, 20px);
+    cursor: pointer;
+    text-transform: uppercase;
+    margin: 10px;
+    font-family: 'Rajdhani', 'DotGothic16', 'Noto Sans JP', 'Yu Gothic UI', sans-serif;
+    font-weight: 600;
+    letter-spacing: 1px;
+    transition: all 0.3s;
+}
+
+button:hover,
+button:active {
+    background: #0ff;
+    color: #000;
+    box-shadow: 0 0 20px #0ff;
+}
+
+h1 {
+    font-size: clamp(32px, 8vw, 48px);
+    margin: 0;
+    text-shadow: 0 0 20px #0ff, 0 0 40px #0ff;
+    animation: glitch 2s infinite;
+    font-family: 'Orbitron', 'DotGothic16', 'Noto Sans JP', 'Yu Gothic UI', sans-serif;
+    font-weight: 900;
+    letter-spacing: 2px;
+}
+
+#helpButton {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    width: 40px;
+    height: 40px;
+    padding: 10px;
+    border: 2px solid #0ff;
+    background: transparent;
+    color: #0ff;
+    font-size: 24px;
+    cursor: pointer;
+    text-align: center;
+    line-height: 36px;
+    font-family: 'Orbitron', 'DotGothic16', 'Noto Sans JP', 'Yu Gothic UI', sans-serif;
+    font-weight: 700;
+    z-index: 20;
+    box-shadow: 0 0 10px #0ff;
+    animation: helpPulse 2s infinite;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#helpButton::after {
+    content: 'HELP';
+    position: absolute;
+    top: 45px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 10px;
+    color: #0ff;
+    text-shadow: 0 0 5px #0ff;
+    white-space: nowrap;
+    font-family: 'Rajdhani', 'DotGothic16', 'Noto Sans JP', 'Yu Gothic UI', sans-serif;
+    font-weight: 600;
+    letter-spacing: 1px;
+}
+
+@keyframes helpPulse {
+    0%, 100% {
+        box-shadow: 0 0 10px #0ff;
+        transform: scale(1);
+    }
+
+    50% {
+        box-shadow: 0 0 20px #0ff, 0 0 30px #0ff;
+        transform: scale(1.1);
+    }
+}
+
+#helpButton:hover {
+    background: #0ff;
+    color: #000;
+    animation: none;
+}
+
+#helpModal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 200;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+#helpContent {
+    background: #000;
+    border: 2px solid #0ff;
+    box-shadow: 0 0 30px #0ff;
+    padding: 30px;
+    max-width: 600px;
+    max-height: 80vh;
+    overflow-y: auto;
+    color: #0ff;
+}
+
+#helpContent h2 {
+    text-align: center;
+    text-shadow: 0 0 10px #0ff;
+    margin-bottom: 20px;
+    font-family: 'Orbitron', 'DotGothic16', 'Noto Sans JP', 'Yu Gothic UI', sans-serif;
+    font-weight: 700;
+    letter-spacing: 1px;
+}
+
+.help-section {
+    margin-bottom: 20px;
+}
+
+.help-section h3 {
+    color: #ff0;
+    text-shadow: 0 0 5px #ff0;
+    margin-bottom: 10px;
+    font-family: 'Rajdhani', 'DotGothic16', 'Noto Sans JP', 'Yu Gothic UI', sans-serif;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+}
+
+.powerup-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 15px;
+    padding: 5px;
+    border: 1px solid #333;
+    gap: 10px;
+}
+
+.powerup-item>div:last-child {
+    flex: 1;
+}
+
+.powerup-icon-help {
+    width: 30px;
+    height: 30px;
+    border: 2px solid;
+    margin-right: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    flex-shrink: 0;
+    background: rgba(0, 0, 0, 0.8);
+    border-radius: 4px;
+}
+
+.powerup-icon-help img {
+    width: 85%;
+    height: 85%;
+    object-fit: contain;
+    filter: brightness(1.4) contrast(1.2) saturate(1.3);
+}
+
+#shotLimit {
+    position: absolute;
+    top: 100px;
+    left: 20px;
+    font-size: clamp(16px, 2.5vw, 20px);
+    color: #0ff;
+    text-shadow: 0 0 15px #0ff, 0 0 25px #0ff;
+    z-index: 10;
+    font-weight: bold;
+    background: rgba(0, 0, 0, 0.8);
+    padding: 8px 20px;
+    border: 3px solid #0ff;
+    border-radius: 10px;
+    pointer-events: none;
+    font-family: 'Exo 2', 'DotGothic16', 'Noto Sans JP', 'Yu Gothic UI', sans-serif;
+}
+
+#shotLimit #shotsLeft {
+    font-size: clamp(32px, 5vw, 40px);
+    display: inline-block;
+    margin: 0 8px;
+    vertical-align: middle;
+}
+
+#shotLimit.warning {
+    color: #ff0;
+    text-shadow: 0 0 15px #ff0, 0 0 25px #ff0;
+    border-color: #ff0;
+    animation: pulse 0.5s infinite;
+}
+
+#shotLimit.danger {
+    color: #f00;
+    text-shadow: 0 0 15px #f00, 0 0 25px #f00;
+    border-color: #f00;
+    animation: pulse 0.3s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.5;
+    }
+}
+
+#powerUpStatus {
+    position: absolute;
+    top: 70px;
+    right: 70px;
+    font-size: clamp(20px, 4vw, 28px);
+    font-weight: bold;
+    text-transform: uppercase;
+    z-index: 19;
+    text-align: right;
+    pointer-events: none;
+    font-family: 'Rajdhani', 'DotGothic16', 'Noto Sans JP', 'Yu Gothic UI', sans-serif;
+    letter-spacing: 1px;
+}
+
+.status-effect {
+    margin-bottom: 10px;
+    padding: 5px 15px;
+    background: rgba(0, 0, 0, 0.8);
+    border: 2px solid;
+    border-radius: 5px;
+    animation: statusPulse 0.5s infinite;
+}
+
+@keyframes statusPulse {
+    0%, 100% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.05);
+    }
+}
+
+#helpContent::-webkit-scrollbar {
+    width: 10px;
+}
+
+#helpContent::-webkit-scrollbar-track {
+    background: #111;
+    border: 1px solid #0ff;
+}
+
+#helpContent::-webkit-scrollbar-thumb {
+    background: #0ff;
+    border-radius: 5px;
+}
+
+@keyframes glitch {
+    0%, 100% {
+        text-shadow: 0 0 20px #0ff, 0 0 40px #0ff;
+    }
+
+    50% {
+        text-shadow: -2px 0 #f0f, 2px 0 #ff0, 0 0 40px #0ff;
+    }
+}
+
+#targetCounter {
+    position: absolute;
+    top: 70px;
+    left: 20px;
+    font-size: clamp(16px, 3vw, 20px);
+    color: #ff0;
+    text-shadow: 0 0 10px #ff0;
+    z-index: 10;
+    font-family: 'Rajdhani', 'DotGothic16', 'Noto Sans JP', 'Yu Gothic UI', sans-serif;
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+
+p {
+    font-size: clamp(14px, 2.5vw, 16px);
+    font-family: 'Exo 2', 'DotGothic16', 'Noto Sans JP', 'Yu Gothic UI', sans-serif;
+    font-weight: 400;
+}
+
+/* 開発者モードボタン */
+#devButton {
+    position: absolute;
+    top: 20px;
+    right: 70px;
+    width: 40px;
+    height: 40px;
+    padding: 10px;
+    background: rgba(255, 165, 0, 0.2);
+    border: 2px solid #ffa500;
+    color: #ffa500;
+    font-size: 24px;
+    line-height: 36px;
+    cursor: pointer;
+    z-index: 1000;
+    transition: all 0.3s;
+    font-weight: bold;
+    box-shadow: 0 0 10px #ffa500;
+    animation: devPulse 2s infinite;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#devButton::after {
+    content: 'DEV';
+    position: absolute;
+    top: 45px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 10px;
+    color: #ffa500;
+    text-shadow: 0 0 5px #ffa500;
+    white-space: nowrap;
+    font-family: 'Rajdhani', 'DotGothic16', 'Noto Sans JP', 'Yu Gothic UI', sans-serif;
+    font-weight: 600;
+    letter-spacing: 1px;
+}
+
+@keyframes devPulse {
+    0%, 100% {
+        box-shadow: 0 0 10px #ffa500;
+        transform: scale(1);
+    }
+
+    50% {
+        box-shadow: 0 0 20px #ffa500, 0 0 30px #ffa500;
+        transform: scale(1.1);
+    }
+}
+
+#devButton:hover {
+    background: rgba(255, 165, 0, 0.4);
+    box-shadow: 0 0 15px #ffa500;
+    animation: none;
+}
+
+/* 開発者パネル */
+#devModal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 2000;
+}
+
+#devContent {
+    background: linear-gradient(145deg, #1a1a1a, #2a2a2a);
+    border: 2px solid #ffa500;
+    border-radius: 10px;
+    padding: 30px;
+    max-width: 600px;
+    max-height: 80vh;
+    overflow-y: auto;
+    box-shadow: 0 0 30px rgba(255, 165, 0, 0.5);
+}
+
+#devContent h2 {
+    color: #ffa500;
+    text-align: center;
+    margin-bottom: 30px;
+    text-shadow: 0 0 10px #ffa500;
+}
+
+#devContent h3 {
+    color: #fff;
+    margin-bottom: 15px;
+    border-bottom: 1px solid #444;
+    padding-bottom: 5px;
+}
+
+.dev-section {
+    margin-bottom: 25px;
+}
+
+.dev-button {
+    padding: 10px 20px;
+    margin: 5px;
+    background: rgba(0, 255, 255, 0.1);
+    border: 2px solid #0ff;
+    color: #0ff;
+    border-radius: 5px;
+    cursor: pointer;
+    font-family: 'Courier New', 'DotGothic16', monospace;
+    font-weight: bold;
+    transition: all 0.3s;
+}
+
+.dev-button:hover {
+    background: rgba(0, 255, 255, 0.3);
+    box-shadow: 0 0 10px #0ff;
+}
+
+.dev-button.danger {
+    border-color: #f00;
+    color: #f00;
+    background: rgba(255, 0, 0, 0.1);
+}
+
+.dev-button.danger:hover {
+    background: rgba(255, 0, 0, 0.3);
+    box-shadow: 0 0 10px #f00;
+}
+
+.dev-powerup-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+}
+
+.dev-powerup-btn {
+    padding: 15px;
+    background: rgba(0, 0, 0, 0.7);
+    border: 2px solid;
+    border-radius: 8px;
+    cursor: pointer;
+    font-family: 'Courier New', 'DotGothic16', monospace;
+    font-weight: bold;
+    transition: all 0.3s;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+}
+
+.dev-powerup-btn img {
+    width: 28px;
+    height: 28px;
+    object-fit: contain;
+    filter: brightness(1.4) contrast(1.2) saturate(1.3);
+}
+
+.dev-powerup-btn:hover img {
+    filter: brightness(1.8) contrast(1.4) saturate(1.5) drop-shadow(0 0 6px currentColor);
+}
+
+.dev-stage-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 10px;
+}
+
+.dev-stage-btn {
+    padding: 10px;
+    background: rgba(0, 255, 0, 0.1);
+    border: 2px solid #0f0;
+    color: #0f0;
+    border-radius: 5px;
+    cursor: pointer;
+    font-family: 'Courier New', 'DotGothic16', monospace;
+    font-weight: bold;
+    transition: all 0.3s;
+}
+
+.dev-stage-btn:hover {
+    background: rgba(0, 255, 0, 0.3);
+    box-shadow: 0 0 10px #0f0;
+}
+
+/* モバイル対応 */
+@media (max-width: 600px) {
+
+    #ui,
+    #targetCounter {
+        top: 10px;
+        left: 10px;
+        font-size: clamp(14px, 2.5vw, 16px);
+    }
+
+    #targetCounter {
+        top: 45px;
+    }
+
+    #shotLimit {
+        top: 70px;
+        left: 10px;
+        padding: 6px 15px;
+    }
+
+    #powerUps {
+        top: 8px;
+        right: 100px;
+        max-width: 150px;
+    }
+
+    .powerUpIcon {
+        margin: 10px 4px;
+        width: 11px;
+        height: 11px;
+        font-size: 20px;
+        line-height: 10px;
+    }
+
+    #helpButton {
+        top: 10px;
+        right: 10px;
+        width: 35px;
+        height: 35px;
+        font-size: 20px;
+    }
+
+    #helpButton::after {
+        top: 40px;
+        font-size: 8px;
+    }
+
+    #helpContent {
+        padding: 15px;
+        font-size: 14px;
+        margin: 10px;
+    }
+
+    #powerUpStatus {
+        top: 100px;
+        right: 10px;
+        font-size: clamp(14px, 2.5vw, 18px);
+    }
+
+    #devButton {
+        top: 10px;
+        right: 55px;
+        width: 35px;
+        height: 35px;
+        font-size: 20px;
+    }
+
+    #devButton::after {
+        top: 40px;
+        font-size: 8px;
+    }
+
+    #devContent {
+        margin: 10px;
+        padding: 15px;
+        max-height: 90vh;
+    }
+
+    .dev-powerup-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 8px;
+    }
+
+    .dev-powerup-btn {
+        padding: 10px;
+        gap: 5px;
+    }
+
+    .dev-powerup-btn img {
+        width: 20px;
+        height: 20px;
+    }
+
+    .dev-stage-grid {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 8px;
+    }
+
+    .dev-stage-btn {
+        padding: 8px;
+        font-size: 12px;
+    }
+
+    .dev-button {
+        padding: 8px 15px;
+        margin: 3px;
+        font-size: 12px;
+    }
+
+    /* モーダルの調整 */
+    #startScreen,
+    #gameOverScreen,
+    #stageClearScreen {
+        width: min(95%, 350px);
+        padding: clamp(15px, 4vw, 30px);
+    }
+
+    button {
+        padding: clamp(6px, 1.5vw, 8px) clamp(15px, 3vw, 20px);
+        font-size: clamp(14px, 2.5vw, 16px);
+        margin: 8px;
+    }
+
+    h1 {
+        font-size: clamp(24px, 6vw, 36px);
+    }
+}
+
+/* より小さい画面での追加調整 */
+@media (max-width: 400px) {
+
+    #ui,
+    #targetCounter {
+        font-size: clamp(12px, 2vw, 14px);
+    }
+
+    #targetCounter {
+        top: 40px;
+    }
+
+    #shotLimit {
+        top: 60px;
+        padding: 4px 10px;
+    }
+
+    #shotLimit #shotsLeft {
+        font-size: clamp(24px, 4vw, 32px);
+        margin: 0 4px;
+    }
+
+    #powerUps {
+        top: 8px;
+        right: 85px;
+        max-width: 120px;
+    }
+
+    .powerUpIcon {
+        width: 6px;
+        height: 6px;
+        font-size: 16px;
+        line-height: 8px;
+    }
+
+    #helpButton {
+        width: 30px;
+        height: 30px;
+        font-size: 14px;
+    }
+
+    #devButton {
+        right: 45px;
+        width: 30px;
+        height: 30px;
+        font-size: 14px;
+    }
+
+    #helpButton::after,
+    #devButton::after {
+        font-size: 7px;
+        top: 35px;
+    }
+
+    #powerUpStatus {
+        font-size: clamp(12px, 2vw, 16px);
+        top: 85px;
+    }
+
+    #devContent {
+        margin: 5px;
+        padding: 10px;
+    }
+
+    .dev-powerup-btn {
+        padding: 8px;
+        font-size: 10px;
+    }
+
+    .dev-powerup-btn img {
+        width: 16px;
+        height: 16px;
+    }
+
+    .dev-stage-btn {
+        padding: 6px;
+        font-size: 10px;
+    }
+
+    .dev-button {
+        padding: 6px 10px;
+        font-size: 10px;
+    }
+}
