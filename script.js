@@ -9,6 +9,7 @@ let scale = 1;
 // デバッグ用変数を追加
 let lastDebugTime = 0;
 const DEBUG_LOG_INTERVAL = 1000; // 1秒間隔でログ出力
+let touchDebugInfo = { enabled: GAME_CONFIG.DEVELOPER.ENABLED };
 
 function resizeCanvas() {
     const container = document.getElementById('gameContainer');
@@ -350,14 +351,16 @@ async function startAudioContext() {
     if (musicStarted) return;
 
     try {
+        console.log('[音声] Tone.context.state:', Tone.context.state);
         if (Tone.context.state !== 'running') {
             await Tone.start();
+            console.log('[音声] Tone.start() 成功');
         }
         musicStarted = true;
-        console.log('Audio context started successfully');
+        console.log('[音声] Audio context started successfully');
     } catch (error) {
-        console.error('音声コンテキスト開始エラー:', error);
-        musicStarted = true; // エラーでも続行
+        console.error('[音声] 音声コンテキスト開始エラー:', error);
+        musicStarted = true; // エラーでも続行（操作は有効にする）
     }
 }
 
@@ -596,15 +599,48 @@ function getCanvasCoordinates(clientX, clientY) {
     const rect = canvas.getBoundingClientRect();
     const x = (clientX - rect.left) / scale;
     const y = (clientY - rect.top) / scale;
+
+    // デバッグ情報
+    if (touchDebugInfo.enabled) {
+        console.log('[座標変換]', {
+            clientX, clientY,
+            rectLeft: rect.left, rectTop: rect.top,
+            scale,
+            canvasX: x, canvasY: y,
+            playerX: player.x, playerY: player.y,
+            distance: Math.hypot(x - player.x, y - player.y),
+            touchArea: player.radius * GAME_CONFIG.PLAYER.TOUCH_AREA_MULTIPLIER
+        });
+    }
+
     return { x, y };
 }
 
 function onMouseDown(e) {
-    if (gameState !== 'playing' || player.isMoving) return;
+    console.log('[マウスダウン] ゲーム状態:', gameState, 'プレイヤー移動中:', player.isMoving);
+
+    if (gameState !== 'playing') {
+        console.log('[マウスダウン] ゲーム状態が"playing"ではないため無視');
+        return;
+    }
+    if (player.isMoving) {
+        console.log('[マウスダウン] プレイヤーが移動中のため無視');
+        return;
+    }
+
     const coords = getCanvasCoordinates(e.clientX, e.clientY);
+    const distance = Math.hypot(coords.x - player.x, coords.y - player.y);
+    const touchArea = player.radius * GAME_CONFIG.PLAYER.TOUCH_AREA_MULTIPLIER;
+
+    console.log('[マウスダウン] 距離チェック:', {
+        distance,
+        touchArea,
+        withinRange: distance < touchArea
+    });
 
     // タッチしやすいように判定を大きくする
-    if (Math.hypot(coords.x - player.x, coords.y - player.y) < player.radius * GAME_CONFIG.PLAYER.TOUCH_AREA_MULTIPLIER) {
+    if (distance < touchArea) {
+        console.log('[マウスダウン] ドラッグ開始');
         player.isDragging = true;
         player.dragStartX = coords.x;
         player.dragStartY = coords.y;
@@ -613,14 +649,13 @@ function onMouseDown(e) {
         console.log('[ドラッグ開始] pendingPowerUpsをチェック:', pendingPowerUps);
         for (const [type] of Object.entries(pendingPowerUps)) {
             console.log(`[ドラッグ開始] ペンディングパワーアップを有効化: ${type}`);
-            if (type === 'predict') {
-                console.log('[PREDICT] ドラッグ開始時に軌道予測パワーアップを有効化');
-            }
             activatePowerUp(type);
             delete pendingPowerUps[type];
         }
 
         e.preventDefault(); // デフォルトのドラッグ動作を防止
+    } else {
+        console.log('[マウスダウン] タッチエリア外のため無視');
     }
 }
 
@@ -708,8 +743,27 @@ function onMouseUp(e) {
 }
 
 function onTouchStart(e) {
+    console.log('[タッチ開始] touches.length:', e.touches.length);
     e.preventDefault();
+
+    if (e.touches.length === 0) {
+        console.log('[タッチ開始] touchesが空のため無視');
+        return;
+    }
+
     const touch = e.touches[0];
+    console.log('[タッチ開始] タッチ座標:', { clientX: touch.clientX, clientY: touch.clientY });
+
+    // 音声コンテキストの初期化を確実に行う
+    if (!musicStarted) {
+        console.log('[タッチ開始] 音声コンテキストを開始');
+        initAudio();
+        startAudioContext().catch(error => {
+            console.error('[タッチ開始] 音声開始エラー:', error);
+            // 音声エラーでも操作は続行
+        });
+    }
+
     onMouseDown({
         clientX: touch.clientX,
         clientY: touch.clientY,
@@ -730,6 +784,7 @@ function onTouchMove(e) {
 }
 
 function onTouchEnd(e) {
+    console.log('[タッチ終了] changedTouches.length:', e.changedTouches.length);
     e.preventDefault();
     onMouseUp({
         preventDefault: () => { }
@@ -1849,17 +1904,25 @@ function gameLoop(currentTime) {
 
 // ゲーム開始
 async function startGame() {
+    console.log('[ゲーム開始] startGame() 呼び出し');
     gameState = 'playing';
     document.getElementById('startScreen').style.display = 'none';
 
-    // 音声初期化とコンテキスト開始
-    initAudio();
-    await startAudioContext();
+    // 音声初期化とコンテキスト開始（エラーでも続行）
+    try {
+        initAudio();
+        await startAudioContext();
+        console.log('[ゲーム開始] 音声初期化完了');
+    } catch (error) {
+        console.error('[ゲーム開始] 音声初期化エラー（続行）:', error);
+    }
 
     init();
     loadStage(currentStage);
     lastTime = performance.now();
     gameLoop(lastTime);
+
+    console.log('[ゲーム開始] ゲーム開始完了');
 }
 
 // 次のステージ
