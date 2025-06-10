@@ -50,25 +50,25 @@
             <h1>NEON RICOCHET</h1>
             <p>1ショットで全てのターゲットを破壊せよ！<br>引っ張って狙いを定めて発射！</p>
             <p style="font-size: 14px; color: #ff0;">右上の「?」ボタンでヘルプを確認できます</p>
-            <button onclick="startGame()">START GAME</button>
+            <button onclick="startGame()" ontouchend="this.onclick()">START GAME</button>
         </div>
 
         <div id="stageClearScreen" style="display: none;">
             <h1>STAGE CLEAR!</h1>
             <p>SHOTS USED: <span id="shotsUsed">0</span></p>
             <p>PERFECT: <span id="perfect">NO</span></p>
-            <button onclick="nextStage()">NEXT STAGE</button>
+            <button onclick="nextStage()" ontouchend="this.onclick()">NEXT STAGE</button>
         </div>
 
         <div id="gameOverScreen" style="display: none;">
             <h1>STAGE FAILED</h1>
             <p>ショット制限を超えました！<br>ステージ1からやり直します</p>
-            <button onclick="retryStage()">RETRY FROM STAGE 1</button>
-            <button onclick="backToMenu()">MENU</button>
+            <button onclick="retryStage()" ontouchend="this.onclick()">RETRY FROM STAGE 1</button>
+            <button onclick="backToMenu()" ontouchend="this.onclick()">MENU</button>
         </div>
 
-        <div id="helpModal" style="display: none;" onclick="hideHelp(event)">
-            <div id="helpContent" onclick="event.stopPropagation()">
+        <div id="helpModal" style="display: none;" onclick="hideHelp(event)" ontouchstart="hideHelp(event)">
+            <div id="helpContent" onclick="event.stopPropagation()" ontouchstart="event.stopPropagation()">
                 <h2>NEON RICOCHET - HELP</h2>
 
                 <div class="help-section">
@@ -151,40 +151,47 @@
                     <p>・後半は自動的に減速するので狙いやすい</p>
                 </div>
 
-                <button onclick="hideHelp()">CLOSE</button>
+                <button onclick="hideHelp()" ontouchend="this.onclick()">CLOSE</button>
             </div>
         </div>
 
         <!-- 開発者コントロールパネル -->
-        <div id="devModal" style="display: none;" onclick="hideDevPanel(event)">
-            <div id="devContent" onclick="event.stopPropagation()">
+        <div id="devModal" style="display: none;" onclick="hideDevPanel(event)" ontouchstart="hideDevPanel(event)">
+            <div id="devContent" onclick="event.stopPropagation()" ontouchstart="event.stopPropagation()">
                 <h2>開発者モード</h2>
 
                 <div class="dev-section">
                     <h3>ステージ操作</h3>
-                    <button onclick="destroyAllTargets()" class="dev-button danger">全ターゲット破壊</button>
-                    <button onclick="resetStage()" class="dev-button">ステージリセット</button>
+                    <button onclick="destroyAllTargets()" ontouchend="this.onclick()"
+                        class="dev-button danger">全ターゲット破壊</button>
+                    <button onclick="resetStage()" ontouchend="this.onclick()" class="dev-button">ステージリセット</button>
                 </div>
 
                 <div class="dev-section">
                     <h3>パワーアップ適用</h3>
                     <div class="dev-powerup-grid">
-                        <button onclick="applyPowerUp('penetrate')" class="dev-powerup-btn" style="border-color: #f0f;">
+                        <button onclick="applyPowerUp('penetrate')" ontouchend="this.onclick()" class="dev-powerup-btn"
+                            style="border-color: #f0f;">
                             <span style="color: #f0f;">→</span> 貫通
                         </button>
-                        <button onclick="applyPowerUp('speed')" class="dev-powerup-btn" style="border-color: #00f;">
+                        <button onclick="applyPowerUp('speed')" ontouchend="this.onclick()" class="dev-powerup-btn"
+                            style="border-color: #00f;">
                             <span style="color: #00f;">»</span> スピード
                         </button>
-                        <button onclick="applyPowerUp('power')" class="dev-powerup-btn" style="border-color: #f00;">
+                        <button onclick="applyPowerUp('power')" ontouchend="this.onclick()" class="dev-powerup-btn"
+                            style="border-color: #f00;">
                             <span style="color: #f00;">◆</span> パワー
                         </button>
-                        <button onclick="applyPowerUp('predict')" class="dev-powerup-btn" style="border-color: #0ff;">
+                        <button onclick="applyPowerUp('predict')" ontouchend="this.onclick()" class="dev-powerup-btn"
+                            style="border-color: #0ff;">
                             <span style="color: #0ff;">◈</span> 軌道予測
                         </button>
-                        <button onclick="applyPowerUp('multishot')" class="dev-powerup-btn" style="border-color: #0f0;">
+                        <button onclick="applyPowerUp('multishot')" ontouchend="this.onclick()" class="dev-powerup-btn"
+                            style="border-color: #0f0;">
                             <span style="color: #0f0;">※</span> マルチショット
                         </button>
-                        <button onclick="applyPowerUp('homing')" class="dev-powerup-btn" style="border-color: #ff0;">
+                        <button onclick="applyPowerUp('homing')" ontouchend="this.onclick()" class="dev-powerup-btn"
+                            style="border-color: #ff0;">
                             <span style="color: #ff0;">◎</span> ホーミング
                         </button>
                     </div>
@@ -192,22 +199,28 @@
 
                 <div class="dev-section">
                     <h3>プレイヤー操作</h3>
-                    <button onclick="resetPlayer()" class="dev-button">プレイヤー位置リセット</button>
-                    <button onclick="toggleGodMode()" class="dev-button" id="godModeBtn">無敵モード: OFF</button>
+                    <button onclick="resetPlayer()" ontouchend="this.onclick()" class="dev-button">プレイヤー位置リセット</button>
+                    <button onclick="toggleGodMode()" ontouchend="this.onclick()" class="dev-button"
+                        id="godModeBtn">無敵モード: OFF</button>
                 </div>
 
                 <div class="dev-section">
                     <h3>ステージジャンプ</h3>
                     <div class="dev-stage-grid">
-                        <button onclick="jumpToStage(1)" class="dev-stage-btn">ステージ 1</button>
-                        <button onclick="jumpToStage(2)" class="dev-stage-btn">ステージ 2</button>
-                        <button onclick="jumpToStage(3)" class="dev-stage-btn">ステージ 3</button>
-                        <button onclick="jumpToStage(4)" class="dev-stage-btn">ステージ 4</button>
-                        <button onclick="jumpToStage(5)" class="dev-stage-btn">ステージ 5</button>
+                        <button onclick="jumpToStage(1)" ontouchend="this.onclick()" class="dev-stage-btn">ステージ
+                            1</button>
+                        <button onclick="jumpToStage(2)" ontouchend="this.onclick()" class="dev-stage-btn">ステージ
+                            2</button>
+                        <button onclick="jumpToStage(3)" ontouchend="this.onclick()" class="dev-stage-btn">ステージ
+                            3</button>
+                        <button onclick="jumpToStage(4)" ontouchend="this.onclick()" class="dev-stage-btn">ステージ
+                            4</button>
+                        <button onclick="jumpToStage(5)" ontouchend="this.onclick()" class="dev-stage-btn">ステージ
+                            5</button>
                     </div>
                 </div>
 
-                <button onclick="hideDevPanel()" class="dev-button">CLOSE</button>
+                <button onclick="hideDevPanel()" ontouchend="this.onclick()" class="dev-button">CLOSE</button>
             </div>
         </div>
     </div>

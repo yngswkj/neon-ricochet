@@ -480,6 +480,68 @@ function init() {
     if (GAME_CONFIG.DEVELOPER.ENABLED) {
         document.getElementById('devButton').style.display = 'flex';
     }
+
+    // ボタンのタッチイベント対応を追加
+    setupButtonTouchEvents();
+}
+
+// ボタンのタッチイベント設定
+function setupButtonTouchEvents() {
+    const buttons = document.querySelectorAll('button');
+    buttons.forEach(button => {
+        // タッチ開始時の処理
+        button.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            button.classList.add('touch-active');
+            console.log('[ボタンタッチ] touchstart:', button.textContent);
+        }, { passive: false });
+
+        // タッチ終了時の処理
+        button.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            button.classList.remove('touch-active');
+            console.log('[ボタンタッチ] touchend:', button.textContent);
+
+            // タッチ範囲内であればクリックを実行
+            const touch = e.changedTouches[0];
+            const rect = button.getBoundingClientRect();
+            const x = touch.clientX;
+            const y = touch.clientY;
+
+            if (x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom) {
+                console.log('[ボタンタッチ] クリックイベント発火');
+                // 少し遅延させてクリックイベントを発火
+                setTimeout(() => {
+                    button.click();
+                }, 50);
+            }
+        }, { passive: false });
+
+        // タッチキャンセル時の処理
+        button.addEventListener('touchcancel', (e) => {
+            e.preventDefault();
+            button.classList.remove('touch-active');
+            console.log('[ボタンタッチ] touchcancel:', button.textContent);
+        }, { passive: false });
+    });
+
+    // モーダル外タッチでの閉じる処理
+    const helpModal = document.getElementById('helpModal');
+    const devModal = document.getElementById('devModal');
+
+    helpModal.addEventListener('touchstart', (e) => {
+        if (e.target.id === 'helpModal') {
+            e.preventDefault();
+            hideHelp();
+        }
+    }, { passive: false });
+
+    devModal.addEventListener('touchstart', (e) => {
+        if (e.target.id === 'devModal') {
+            e.preventDefault();
+            hideDevPanel();
+        }
+    }, { passive: false });
 }
 
 // ステージ読み込み
@@ -1749,7 +1811,7 @@ function render() {
 
         // 引っ張り強度表示
         const power = Math.min(Math.hypot(player.x - player.dragStartX, player.y - player.dragStartY) / 100, 1);
-        ctx.fillStyle = `rgba(255, ${255 - power * 155}, 0, 0.5)`;
+        ctx.fillStyle = `rgba(255, ${255 - power * 155},  0, 0.5)`;
         ctx.beginPath();
         ctx.arc(player.x, player.y, player.radius * (1 + power), 0, Math.PI * 2);
         ctx.fill();
@@ -1925,46 +1987,63 @@ async function startGame() {
     console.log('[ゲーム開始] ゲーム開始完了');
 }
 
-// 次のステージ
+// 次のステージ（タッチイベント対応）
 function nextStage() {
+    console.log('[次のステージ] nextStage() 呼び出し');
     currentStage++;
     document.getElementById('stageClearScreen').style.display = 'none';
     gameState = 'playing';
     loadStage(currentStage);
+
+    // ボタンのタッチイベントを再設定
+    setTimeout(() => {
+        setupButtonTouchEvents();
+    }, 100);
 }
 
-// リトライ（ステージ1から）
+// リトライ（ステージ1から）（タッチイベント対応）
 function retryStage() {
+    console.log('[リトライ] retryStage() 呼び出し');
     currentStage = 1;
     document.getElementById('gameOverScreen').style.display = 'none';
     gameState = 'playing';
     loadStage(currentStage);
+
+    // ボタンのタッチイベントを再設定
+    setTimeout(() => {
+        setupButtonTouchEvents();
+    }, 100);
 }
 
-// メニューに戻る
+// メニューに戻る（タッチイベント対応）
 function backToMenu() {
+    console.log('[メニュー] backToMenu() 呼び出し');
     location.reload();
 }
 
-// ヘルプ表示
+// ヘルプ表示（タッチイベント対応）
 function showHelp() {
+    console.log('[ヘルプ] showHelp() 呼び出し');
     document.getElementById('helpModal').style.display = 'flex';
 }
 
-// ヘルプ非表示
+// ヘルプ非表示（タッチイベント対応）
 function hideHelp(event) {
+    console.log('[ヘルプ] hideHelp() 呼び出し');
     if (!event || event.target.id === 'helpModal') {
         document.getElementById('helpModal').style.display = 'none';
     }
 }
 
-// 開発者モード関数
+// 開発者モード関数（タッチイベント対応）
 function showDevPanel() {
     if (!GAME_CONFIG.DEVELOPER.ENABLED) return;
+    console.log('[開発者] showDevPanel() 呼び出し');
     document.getElementById('devModal').style.display = 'flex';
 }
 
 function hideDevPanel(event) {
+    console.log('[開発者] hideDevPanel() 呼び出し');
     if (!event || event.target.id === 'devModal') {
         document.getElementById('devModal').style.display = 'none';
     }

@@ -2,7 +2,7 @@
 const GAME_CONFIG = {
     // キャンバス設定
     CANVAS: {
-        DEFAULT_WIDTH: 800,
+        DEFAULT_WIDTH: 400,
         DEFAULT_HEIGHT: 600,
         MOBILE_WIDTH: 400,
         MOBILE_HEIGHT: 600,
